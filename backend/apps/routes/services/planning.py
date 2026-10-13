@@ -10,6 +10,7 @@ from .locations import EndpointResolver
 from .optimizer import optimize_fuel
 from .candidates import route_candidates
 from .routing import driving_route
+from .audit import audit_fuel_plan
 
 CENT=Decimal("0.01")
 
@@ -40,7 +41,7 @@ def plan_route(data,*,provider=None,resolver=None):
             except PlanningError:provisional=optimize_fuel(route.miles,candidates,initial_gallons=initial,reserve_gallons=reserve)
         except PlanningError as error:
             error.code="insufficient_station_coverage"
-            error.details={"verified_corridor_candidates":len(candidates)}
+            error.details={"verified_corridor_candidates":len(candidates),"fuel_constraints_verified":True}
             raise
         lookup={s.station_id:s for s in candidates}
         selected=[lookup[p.station_id] for p in provisional.purchases]
@@ -61,6 +62,7 @@ def plan_route(data,*,provider=None,resolver=None):
         except PlanningError as error:
             error.code="verified_route_infeasible";raise
         waypoint_stations=[s.station_id for s in selected]
+    audit_fuel_plan(plan,reserve)
     stations=FuelStation.objects.in_bulk([p.station_id for p in plan.purchases])
     stops=[];total=Decimal(0)
     for purchase in plan.purchases:
@@ -86,4 +88,4 @@ def plan_route(data,*,provider=None,resolver=None):
         "attribution":"openrouteservice by HeiGIT; OpenStreetMap contributors",
         "provider_usage":{"directions_calls":provider.routing_calls,"directions_cache_hits":provider.cache_hits,
             "geocoding_calls":resolver.geocoding_calls,"geocoding_cache_hits":resolver.cache_hits},
-        "verified_corridor_candidates":len(candidates)}
+        "verified_corridor_candidates":len(candidates),"fuel_constraints_verified":True}
