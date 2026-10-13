@@ -106,6 +106,8 @@ DATABASES = {
         "HOST": env("DB_HOST", default="127.0.0.1"),
         "PORT": env("DB_PORT", default="5432"),
         "TEST": {"NAME": env("DB_TEST_NAME", default="test_spotter_fuel")},
+        "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=60),
+        "CONN_HEALTH_CHECKS": True,
     }
 }
 

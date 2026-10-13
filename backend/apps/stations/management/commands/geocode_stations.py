@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from ...models import FuelStation, StationLocation
 from ...providers.geocoding import GeocodingError, OpenRouteServiceGeocoder
 from ...services.geocoding import geocode_station
+from ...services.fuel_data import US_STATES
 
 
 class Command(BaseCommand):
@@ -11,7 +12,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--limit", type=int, default=10)
-        parser.add_argument("--state", choices=sorted(__import__("apps.stations.services.fuel_data",fromlist=["US_STATES"]).US_STATES))
+        parser.add_argument("--state", choices=sorted(US_STATES))
         parser.add_argument("--station-id", type=int)
         parser.add_argument("--refresh", action="store_true")
         parser.add_argument("--retry-unresolved", action="store_true")
