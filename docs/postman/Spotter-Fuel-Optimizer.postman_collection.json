@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "Spotter Fuel Optimizer â€” Backend",
+    "description": "Read-only backend checks. Start Django on port 8000 and run requests in order; the station list captures a valid station_id automatically. No credentials are included.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "station_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/health/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Database is ready\", function () { const body = pm.response.json(); pm.expect(body.status).to.eql(\"ok\"); pm.expect(body.database).to.eql(\"ok\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List stations and capture an ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/stations/?page_size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Paginated stations have valid prices\", function () { const body = pm.response.json(); pm.expect(body.count).to.be.above(0); pm.expect(body.results).to.be.an(\"array\").that.is.not.empty; pm.expect(body.results.length).to.be.at.most(5); body.results.forEach(function (station) { pm.expect(Number(station.median_price)).to.be.above(0); }); pm.collectionVariables.set(\"station_id\", String(body.results[0].id)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Station detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/stations/{{station_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Detail matches selected station\", function () { const body = pm.response.json(); pm.expect(String(body.id)).to.eql(pm.collectionVariables.get(\"station_id\")); pm.expect(body.source_id).to.be.a(\"string\"); pm.expect(body.location).to.have.property(\"status\"); pm.expect(body.location).to.have.property(\"coordinates\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filter Texas stations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/stations/?state=TX&page_size=5"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Only Texas stations returned\", function () { const body = pm.response.json(); pm.expect(body.results).to.be.an(\"array\").that.is.not.empty; body.results.forEach(function (station) { pm.expect(station.state).to.eql(\"TX\"); }); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject a non-US state filter",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/api/stations/?state=ON"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Invalid state returns HTTP 400\", function () { pm.response.to.have.status(400); });",
+              "pm.test(\"Validation error identifies state\", function () { pm.expect(pm.response.json()).to.have.property(\"state\"); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
