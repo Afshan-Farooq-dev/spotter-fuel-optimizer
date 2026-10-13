@@ -145,5 +145,5 @@ state filtering, 404 and invalid-state 400. A local generated verification repor
 is available at `data/processed/backend_verification.json`. The temporary
 verification server is stopped afterward.
 
-Routing optimization, frontend features and the Phase 5 Postman collection are
-not implemented by these phases.
+The Postman collection is available in `docs/postman/`; see its README for import
+and runner instructions. Routing optimization and frontend features are not implemented.

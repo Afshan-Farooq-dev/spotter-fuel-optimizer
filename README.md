@@ -45,3 +45,9 @@ Django reads optional `GIS_LIBRARY_DIRECTORY`, `GDAL_LIBRARY_PATH` and `GEOS_LIB
 ## Verification
 
 Run `./backend/.venv/Scripts/python.exe -m pytest -q --reuse-db` after preparing the isolated PostGIS test database as described in the backend instructions.
+
+## Postman and final checks
+
+Import [the Postman collection](docs/postman/Spotter-Fuel-Optimizer.postman_collection.json), start Django, and run requests in order. [Postman instructions](docs/postman/README.md) explain the automatic station ID capture.
+
+See [actual final verification results and remaining assessment scope](docs/final-verification.md).
