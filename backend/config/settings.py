@@ -9,6 +9,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 import environ
 
@@ -19,6 +20,15 @@ env = environ.Env(
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
+
+# Optional paths for native GIS libraries on Windows.
+GIS_LIBRARY_DIRECTORY = env("GIS_LIBRARY_DIRECTORY", default="")
+if os.name == "nt" and GIS_LIBRARY_DIRECTORY:
+    os.environ["PATH"] = GIS_LIBRARY_DIRECTORY + os.pathsep + os.environ.get("PATH", "")
+    GIS_DLL_DIRECTORY = os.add_dll_directory(GIS_LIBRARY_DIRECTORY)
+
+GDAL_LIBRARY_PATH = env("GDAL_LIBRARY_PATH", default=None)
+GEOS_LIBRARY_PATH = env("GEOS_LIBRARY_PATH", default=None)
 
 
 # Quick-start development settings - unsuitable for production
@@ -42,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     "rest_framework",
     "apps.stations.apps.StationsConfig",
     "apps.routes.apps.RoutesConfig",
@@ -82,8 +93,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST", default="127.0.0.1"),
+        "PORT": env("DB_PORT", default="5432"),
     }
 }
 
