@@ -68,3 +68,83 @@ def read_fuel_csv(path: Path) -> ValidationResult:
                     values["Truckstop Name"], values["Address"], values["City"],
                     state, values["Rack ID"], price))
     return ValidationResult(records, total, exclusions)
+
+@dataclass(frozen=True)
+class CleanStation:
+    station_id: str
+    name: str
+    aliases: tuple[str, ...]
+    address: str
+    city: str
+    state: str
+    median_price: Decimal
+    source_rows: tuple[int, ...]
+    rack_ids: tuple[str, ...]
+    distinct_prices: tuple[Decimal, ...]
+
+
+@dataclass
+class CleaningResult:
+    stations: list[CleanStation]
+    records: list[FuelRecord]
+    report: dict
+
+
+def clean_fuel_data(result: ValidationResult) -> CleaningResult:
+    """Deduplicate normalized US records, quarantine address conflicts, then take medians."""
+    from collections import Counter, defaultdict
+    from statistics import median
+
+    exclusions = list(result.exclusions)
+    seen, groups = set(), defaultdict(list)
+    for record in result.records:
+        identity = (record.station_id, record.name, record.address, record.city,
+                    record.state, record.rack_id, record.price)
+        if identity in seen:
+            exclusions.append({"source_row": record.source_row, "category": "duplicate",
+                               "reasons": ["duplicate_normalized_us_row"]})
+        else:
+            seen.add(identity)
+            groups[record.station_id].append(record)
+    stations, retained, address_conflicts, price_conflicts = [], [], [], []
+    for station_id in sorted(groups, key=lambda value: (int(value), value)):
+        records = groups[station_id]
+        addresses = {(r.address.casefold(), r.city.casefold(), r.state) for r in records}
+        if len(addresses) != 1:
+            address_conflicts.append(station_id)
+            exclusions.extend({"source_row": r.source_row, "category": "address_conflict",
+                               "reasons": ["station_id_has_conflicting_addresses"]} for r in records)
+            continue
+        first = records[0]
+        prices = tuple(sorted({r.price for r in records}))
+        if len(prices) > 1:
+            price_conflicts.append(station_id)
+        stations.append(CleanStation(station_id, first.name, tuple(sorted({r.name for r in records})),
+            first.address, first.city, first.state, median([r.price for r in records]),
+            tuple(r.source_row for r in records), tuple(sorted({r.rack_id for r in records})), prices))
+        retained.extend(records)
+    exclusions.sort(key=lambda item: item["source_row"])
+    counts = Counter(item["category"] for item in exclusions)
+    assert result.total_rows == len(retained) + len(exclusions)
+    report = {
+        "total_source_rows": result.total_rows,
+        "retained_us_source_rows": len(retained),
+        "cleaned_us_stations": len(stations),
+        "excluded_canadian_rows": counts["canadian"],
+        "invalid_rows": counts["invalid"],
+        "duplicate_us_rows": counts["duplicate"],
+        "address_conflict_rows": counts["address_conflict"],
+        "address_conflict_station_ids": address_conflicts,
+        "price_conflict_station_count": len(price_conflicts),
+        "price_conflict_station_ids": price_conflicts,
+        "represented_us_states": sorted({s.state for s in stations}),
+        "median_price_min": str(min((s.median_price for s in stations), default="")),
+        "median_price_max": str(max((s.median_price for s in stations), default="")),
+        "price_policy": "Median of valid normalized US rows after exact normalized-row deduplication; prices are not deduplicated independently.",
+        "currency_assumption": "USD",
+        "price_unit_assumption": "US gallon",
+        "fuel_type": "unspecified in source",
+        "row_accounting_verified": True,
+        "exclusions": exclusions,
+    }
+    return CleaningResult(stations, retained, report)
