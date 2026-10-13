@@ -1,6 +1,6 @@
 # Spotter Fuel Optimizer
 
-Django REST Framework backend for the Spotter Labs assessment. The stations and routes apps are scaffolded; fuel imports, API endpoints, route optimization and the frontend are not implemented yet.
+Django REST Framework backend for the Spotter Labs assessment. The stations and routes apps are scaffolded. CSV validation and cleaning are implemented; database imports, API endpoints, route optimization and the frontend are not implemented yet.
 
 ## Local development on Windows
 
@@ -32,7 +32,7 @@ The development server runs at http://127.0.0.1:8000/. The admin login is at `/a
 
 ## Data
 
-The original assessment CSV is preserved unchanged in `data/raw/fuel-prices-for-be-assessment.csv`. It contains 8,151 rows. Data cleaning and station coordinate enrichment are subsequent phases; no station coordinates have been invented.
+The original assessment CSV is preserved unchanged in `data/raw/fuel-prices-for-be-assessment.csv`. It contains 8,151 rows. The cleaner produces 6,626 US stations using documented median-price assumptions. See [the cleaning policy](docs/fuel-data-cleaning.md) for commands and verified counts. Station coordinate enrichment is a subsequent phase; no station coordinates have been invented.
 
 ## Windows PostGIS repair
 
