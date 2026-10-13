@@ -1,6 +1,6 @@
 # Spotter Fuel Optimizer
 
-Django REST Framework backend for the Spotter Labs assessment. The stations and routes apps are scaffolded. CSV validation and cleaning are implemented; database imports, API endpoints, route optimization and the frontend are not implemented yet.
+Django REST Framework backend for the Spotter Labs assessment. The stations and routes apps are scaffolded. CSV cleaning, transactional database imports, cached geocoding preparation and read-only station APIs are implemented. Routing optimization and the frontend are not implemented yet.
 
 ## Local development on Windows
 
@@ -28,7 +28,9 @@ Copy the environment example only on a fresh setup; do not overwrite an existing
 ./backend/.venv/Scripts/python.exe backend/manage.py runserver
 ```
 
-The development server runs at http://127.0.0.1:8000/. The admin login is at `/admin/login/`; no administrator account is created automatically. A 404 at the root URL is expected until public endpoints are added.
+The development server runs at http://127.0.0.1:8000/. Health is at `/api/health/`, stations at `/api/stations/`, and station detail at `/api/stations/{id}/`. The admin login is at `/admin/login/`; no administrator account is created automatically. A 404 at the root URL is expected.
+
+See [backend import, geocoding and API instructions](docs/backend-api.md).
 
 ## Data
 
@@ -39,3 +41,7 @@ The original assessment CSV is preserved unchanged in `data/raw/fuel-prices-for-
 The local installation contained a `libxml2-2.dll` requiring an absent `liblzma-5.dll`. Restoring the XML DLL from the matching official PostgreSQL 16 / PostGIS 3.4.2 archive resolved extension loading. The prior DLL was backed up outside the repository before replacement. Avoid downloading standalone DLLs from unofficial sites.
 
 Django reads optional `GIS_LIBRARY_DIRECTORY`, `GDAL_LIBRARY_PATH` and `GEOS_LIBRARY_PATH` from `.env`. On Windows, the configured DLL directory is added to the process search paths. Other platforms can omit these variables and use their system GIS libraries.
+
+## Verification
+
+Run `./backend/.venv/Scripts/python.exe -m pytest -q --reuse-db` after preparing the isolated PostGIS test database as described in the backend instructions.
