@@ -24,3 +24,9 @@ def test_invalid_route_metadata(kind):
     elif kind=="legs":feature["properties"]["segments"][0]["distance"]=1
     else:feature["properties"]["way_points"]=[1,0]
     with pytest.raises(ProviderError):parse_directions(payload,2)
+
+
+def test_two_endpoint_summary_is_a_valid_single_leg():
+    payload=route_payload();del payload["features"][0]["properties"]["segments"]
+    assert parse_directions(payload,2).miles==1
+    with pytest.raises(ProviderError):parse_directions(payload,3)
