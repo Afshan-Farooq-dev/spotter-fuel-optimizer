@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Spotter Fuel Optimizer â€” Backend",
-    "description": "Read-only backend checks. Start Django on port 8000 and run requests in order; the station list captures a valid station_id automatically. No credentials are included.",
+    "name": "Spotter Fuel Optimizer \u00e2\u20ac\u201d Backend",
+    "description": "Read-only backend checks. Start Django on port 8000 and run requests in order; the station list captures a valid station_id automatically. No credentials are included. Route examples use real US endpoints. Long routes require verified station coverage; a documented 422 is expected until enrichment provides reachable stops.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -140,6 +140,195 @@
             "exec": [
               "pm.test(\"Invalid state returns HTTP 400\", function () { pm.response.to.have.status(400); });",
               "pm.test(\"Validation error identifies state\", function () { pm.expect(pm.response.json()).to.have.property(\"state\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Optimize a short US route",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": {\n    \"longitude\": -95.3698,\n    \"latitude\": 29.7604\n  },\n  \"destination\": {\n    \"longitude\": -96.797,\n    \"latitude\": 32.7767\n  },\n  \"initial_fuel_gallons\": 50\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/routes/optimize/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",function(){pm.response.to.have.status(200);});",
+              "pm.test(\"Fuel plan geometry and accounting are valid\", function () { const b = pm.response.json(); pm.expect(b.geometry.type).to.eql(\"LineString\"); pm.expect(b.fuel_constraints_verified).to.eql(true); const initial=Number(b.initial_fuel_gallons), purchased=Number(b.fuel_purchased_gallons), consumed=Number(b.fuel_consumed_gallons), remaining=Number(b.remaining_fuel_gallons); pm.expect(Math.abs(initial+purchased-consumed-remaining)).to.be.below(0.000001); let cost=0; b.fuel_stops.forEach(function(s) { pm.expect(Number(s.departure_fuel_gallons)).to.be.at.most(50.000001); pm.expect(Number(s.arrival_fuel_gallons)).to.be.at.least(0); cost+=Number(s.cost); }); pm.expect(Math.abs(cost-Number(b.total_cost))).to.be.below(0.001); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Optimize a long US route",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": {\n    \"longitude\": -95.3698,\n    \"latitude\": 29.7604\n  },\n  \"destination\": {\n    \"longitude\": -87.6298,\n    \"latitude\": 41.8781\n  },\n  \"initial_fuel_gallons\": 50\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/routes/optimize/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Route succeeds or reports genuine station coverage failure\", function () { pm.expect([200,422]).to.include(pm.response.code); if(pm.response.code===422) { pm.expect([\"insufficient_station_coverage\",\"verified_route_infeasible\",\"station_access_not_verified\",\"infeasible_route\"]).to.include(pm.response.json().error.code); } });",
+              "if(pm.response.code===200) { pm.test(\"Fuel plan geometry and accounting are valid\", function () { const b = pm.response.json(); pm.expect(b.geometry.type).to.eql(\"LineString\"); pm.expect(b.fuel_constraints_verified).to.eql(true); const initial=Number(b.initial_fuel_gallons), purchased=Number(b.fuel_purchased_gallons), consumed=Number(b.fuel_consumed_gallons), remaining=Number(b.remaining_fuel_gallons); pm.expect(Math.abs(initial+purchased-consumed-remaining)).to.be.below(0.000001); let cost=0; b.fuel_stops.forEach(function(s) { pm.expect(Number(s.departure_fuel_gallons)).to.be.at.most(50.000001); pm.expect(Number(s.arrival_fuel_gallons)).to.be.at.least(0); cost+=Number(s.cost); }); pm.expect(Math.abs(cost-Number(b.total_cost))).to.be.below(0.001); }); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Optimize a route requiring multiple stops",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": {\n    \"longitude\": -74.006,\n    \"latitude\": 40.7128\n  },\n  \"destination\": {\n    \"longitude\": -118.2437,\n    \"latitude\": 34.0522\n  },\n  \"initial_fuel_gallons\": 50\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/routes/optimize/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Route succeeds or reports genuine station coverage failure\", function () { pm.expect([200,422]).to.include(pm.response.code); if(pm.response.code===422) { pm.expect([\"insufficient_station_coverage\",\"verified_route_infeasible\",\"station_access_not_verified\",\"infeasible_route\"]).to.include(pm.response.json().error.code); } });",
+              "if(pm.response.code===200) { pm.test(\"Fuel plan geometry and accounting are valid\", function () { const b = pm.response.json(); pm.expect(b.geometry.type).to.eql(\"LineString\"); pm.expect(b.fuel_constraints_verified).to.eql(true); const initial=Number(b.initial_fuel_gallons), purchased=Number(b.fuel_purchased_gallons), consumed=Number(b.fuel_consumed_gallons), remaining=Number(b.remaining_fuel_gallons); pm.expect(Math.abs(initial+purchased-consumed-remaining)).to.be.below(0.000001); let cost=0; b.fuel_stops.forEach(function(s) { pm.expect(Number(s.departure_fuel_gallons)).to.be.at.most(50.000001); pm.expect(Number(s.arrival_fuel_gallons)).to.be.at.least(0); cost+=Number(s.cost); }); pm.expect(Math.abs(cost-Number(b.total_cost))).to.be.below(0.001); }); }",
+              "if(pm.response.code===200) { pm.test(\"Multiple fuel stops\",function(){pm.expect(pm.response.json().fuel_stops.length).to.be.at.least(2);}); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject invalid route input",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/routes/optimize/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Invalid input returns 400\",function(){pm.response.to.have.status(400);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject a non-US endpoint",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": {\n    \"longitude\": -79.3832,\n    \"latitude\": 43.6532\n  },\n  \"destination\": {\n    \"longitude\": -95.3698,\n    \"latitude\": 29.7604\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/routes/optimize/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Non-US endpoint returns 400\",function(){pm.response.to.have.status(400);});"
             ]
           }
         }
