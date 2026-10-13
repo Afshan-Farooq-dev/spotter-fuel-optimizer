@@ -99,6 +99,7 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST", default="127.0.0.1"),
         "PORT": env("DB_PORT", default="5432"),
+        "TEST": {"NAME": env("DB_TEST_NAME", default="test_spotter_fuel")},
     }
 }
 
@@ -148,3 +149,10 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# Geocoding is opt-in through the management command, never through station GETs.
+ORS_API_KEY = env("ORS_API_KEY", default="")
+GEOCODING_TIMEOUT = env.float("GEOCODING_TIMEOUT", default=10)
+GEOCODING_INTERVAL = env.float("GEOCODING_INTERVAL", default=1)
+GEOCODING_CACHE_DAYS = env.int("GEOCODING_CACHE_DAYS", default=30)
+GEOCODING_MIN_CONFIDENCE = env.float("GEOCODING_MIN_CONFIDENCE", default=0.9)
