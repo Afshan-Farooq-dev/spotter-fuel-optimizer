@@ -11,6 +11,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--limit", type=int, default=10)
+        parser.add_argument("--state", choices=sorted(__import__("apps.stations.services.fuel_data",fromlist=["US_STATES"]).US_STATES))
         parser.add_argument("--station-id", type=int)
         parser.add_argument("--refresh", action="store_true")
         parser.add_argument("--retry-unresolved", action="store_true")
@@ -20,6 +21,8 @@ class Command(BaseCommand):
         if not 1 <= options["limit"] <= 100:
             raise CommandError("--limit must be between 1 and 100.")
         stations = FuelStation.objects.order_by("pk")
+        if options["state"]:
+            stations = stations.filter(state=options["state"])
         if options["station_id"] is not None:
             stations = stations.filter(pk=options["station_id"])
             if not stations.exists():

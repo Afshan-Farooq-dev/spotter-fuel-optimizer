@@ -9,6 +9,8 @@ from django.db import transaction
 from django.utils import timezone
 from ..models import FuelStation, GeocodingCache, StationLocation
 from ..providers.geocoding import GeocodingError
+from apps.routes.services.locations import us_state
+from apps.routes.services.domain import InvalidLocation,ProviderError
 
 
 def normalized(value):
@@ -88,6 +90,14 @@ def geocode_station(station, provider, *, refresh=False, cache_days=30, min_conf
         cache, _ = GeocodingCache.objects.update_or_create(key=key,
             defaults={"provider": provider.name, "query": query, "response": response, "fetched_at": timezone.now()})
     status, match = choose_match(station, cache.response, min_confidence=min_confidence)
+    if status == StationLocation.Status.VERIFIED:
+        try:
+            if us_state(match["point"].x,match["point"].y) != station.state:
+                status,match = StationLocation.Status.NO_MATCH,{}
+        except InvalidLocation:
+            status,match = StationLocation.Status.NO_MATCH,{}
+        except ProviderError as error:
+            raise GeocodingError(str(error)) from None
     with transaction.atomic():
         locked = FuelStation.objects.select_for_update().get(pk=station.pk)
         if station_query(locked) != query:
