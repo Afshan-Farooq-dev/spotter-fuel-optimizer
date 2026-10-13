@@ -27,6 +27,11 @@ if os.name == "nt" and GIS_LIBRARY_DIRECTORY:
     os.environ["PATH"] = GIS_LIBRARY_DIRECTORY + os.pathsep + os.environ.get("PATH", "")
     GIS_DLL_DIRECTORY = os.add_dll_directory(GIS_LIBRARY_DIRECTORY)
 
+PROJ_DATA_DIRECTORY = env("PROJ_DATA", default="")
+if PROJ_DATA_DIRECTORY:
+    os.environ["PROJ_DATA"] = PROJ_DATA_DIRECTORY
+    os.environ["PROJ_LIB"] = PROJ_DATA_DIRECTORY
+
 GDAL_LIBRARY_PATH = env("GDAL_LIBRARY_PATH", default=None)
 GEOS_LIBRARY_PATH = env("GEOS_LIBRARY_PATH", default=None)
 
