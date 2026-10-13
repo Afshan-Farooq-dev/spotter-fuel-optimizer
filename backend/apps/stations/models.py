@@ -3,6 +3,8 @@ import math
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db.models.functions import Cast
+from django.contrib.postgres.indexes import GistIndex
 from .services.fuel_data import US_STATES
 
 
@@ -81,6 +83,8 @@ class StationLocation(models.Model):
     checked_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        indexes = [GistIndex(Cast("point",output_field=models.PointField(srid=4326,geography=True)),
+                             name="station_point_geog_idx")]
         constraints = [
             models.CheckConstraint(
                 condition=(Q(status="verified", point__isnull=False, country_code="USA")

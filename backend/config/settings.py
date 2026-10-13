@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'django.contrib.postgres',
     "rest_framework",
     "apps.stations.apps.StationsConfig",
     "apps.routes.apps.RoutesConfig",
