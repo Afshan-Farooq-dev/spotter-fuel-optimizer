@@ -27,3 +27,7 @@ dist/
 
 # Reproducible derived fuel data
 data/processed/
+
+# Browser verification artifacts
+frontend/test-results/
+frontend/playwright-report/
