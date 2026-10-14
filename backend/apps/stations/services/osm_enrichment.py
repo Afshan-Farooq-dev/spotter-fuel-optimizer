@@ -19,11 +19,17 @@ def identity(station, tags):
     state=tags.get('addr:state')==station.state
     if not city or not state:return None
     if tags.get('amenity')!='fuel' or tags.get('disused')=='yes' or tags.get('access')=='private':return None
+    if tags.get('ref:opis') and tags['ref:opis']!=station.source_id:return None
+    exits=re.findall(r'EXIT\s*(\d+[A-Z]?)',station.address.upper())
+    mapped_exit=tags.get('ref:exit')
+    if mapped_exit and exits and mapped_exit.upper() not in exits:return None
+    extras=(['OPIS ID'] if tags.get('ref:opis')==station.source_id else [])
+    if mapped_exit and exits:extras.append('highway_exit')
     osm_names={normalized(tags.get(k,'')) for k in ('name','brand','operator','alt_name')}-{''}
     for name in names:
         match=re.fullmatch(r'(.+?)\s*#\s*(\d+)',name.strip())
         if match and normalized(match[1]) in osm_names and tags.get('ref')==match[2]:
-            return ['brand','store_number','city','state']
+            return ['brand','store_number','city','state']+extras
     address=' '.join([tags.get('addr:housenumber',''),tags.get('addr:street','')])
     exact_name=any(normalized(n) in osm_names for n in names)
     exact_address=bool(tags.get('addr:housenumber')) and normalized(address)==normalized(station.address)
@@ -90,3 +96,4 @@ def enrich(station, source, refresh=False, dry_run=False):
         location.status=status;location.provider=POLICY;location.cache=audit
         location.checked_at=timezone.now();location.full_clean();location.save()
     return evidence
+

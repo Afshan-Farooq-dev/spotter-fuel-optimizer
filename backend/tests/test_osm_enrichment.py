@@ -51,3 +51,11 @@ def test_ambiguous_and_dry_run(osm_station):
     assert not StationLocation.objects.filter(station=osm_station).exists()
     enrich(osm_station,source)
     assert StationLocation.objects.get(station=osm_station).point is None
+
+@pytest.mark.django_db
+def test_conflicting_opis_and_exit_rejected(osm_station):
+    assert identity(osm_station,element(**{'ref:opis':'999'})['tags']) is None
+    osm_station.address='I-10 EXIT12'
+    assert identity(osm_station,element(**{'ref:exit':'13'})['tags']) is None
+    factors=identity(osm_station,element(**{'ref:exit':'12','ref:opis':'123'})['tags'])
+    assert 'highway_exit' in factors and 'OPIS ID' in factors
