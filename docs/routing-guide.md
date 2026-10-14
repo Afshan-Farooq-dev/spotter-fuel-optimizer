@@ -151,3 +151,5 @@ The Census archive is official public geographic data, preserved separately from
 the original fuel CSV. Its source URL and SHA-256 are stored on each boundary.
 Census source:
 https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_state_500k.zip
+
+Latest coverage update: [station enrichment and successful live refueling](station-enrichment.md). The earlier zero-coverage results above describe the initial routing verification, before this enrichment.

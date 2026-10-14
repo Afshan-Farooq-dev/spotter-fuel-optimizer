@@ -333,6 +333,39 @@
           }
         }
       ]
+    },
+    {
+      "name": "Verified refueling: Indianapolis to Minneapolis",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": {\n    \"longitude\": -86.1581,\n    \"latitude\": 39.7684\n  },\n  \"destination\": {\n    \"longitude\": -93.265,\n    \"latitude\": 44.9778\n  }\n}"
+        },
+        "url": "{{base_url}}/api/routes/optimize/",
+        "description": "Requires enrichment for Kwik Trip #796. A full 50-gallon tank cannot cover the entire live route. Missing coverage must fail this success check."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Verified refueling route succeeds', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "pm.test('Real route needs fuel', () => { pm.expect(Number(b.distance_miles)).to.be.above(500); pm.expect(b.fuel_stops.length).to.be.above(0); pm.expect(b.fuel_constraints_verified).to.eql(true); });",
+              "pm.test('Fuel purchases and cost reconcile', () => { const gallons=b.fuel_stops.reduce((s,f)=>s+Number(f.gallons_purchased),0); const cost=b.fuel_stops.reduce((s,f)=>s+Number(f.cost),0); pm.expect(Math.abs(gallons-Number(b.fuel_purchased_gallons))).to.be.below(0.000001); pm.expect(Math.abs(cost-Number(b.total_cost))).to.be.below(0.005); b.fuel_stops.forEach(f=>{pm.expect(Number(f.departure_fuel_gallons)).to.be.at.most(50);pm.expect(Number(f.arrival_fuel_gallons)).to.be.at.least(0);pm.expect(f.road_snap_distance_metres).to.be.at.most(200);}); });",
+              "pm.test('Map geometry available', () => {pm.expect(b.geometry.type).to.eql('LineString');pm.expect(b.geometry.coordinates.length).to.be.above(1);});"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

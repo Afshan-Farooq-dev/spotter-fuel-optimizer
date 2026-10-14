@@ -34,7 +34,7 @@ See [backend import, geocoding and API instructions](docs/backend-api.md).
 
 ## Data
 
-The original assessment CSV is preserved unchanged in `data/raw/fuel-prices-for-be-assessment.csv`. It contains 8,151 rows. The cleaner produces 6,626 US stations using documented median-price assumptions. See [the cleaning policy](docs/fuel-data-cleaning.md) for commands and verified counts. Station coordinate enrichment is a subsequent phase; no station coordinates have been invented.
+The original assessment CSV is preserved unchanged in `data/raw/fuel-prices-for-be-assessment.csv`. It contains 8,151 rows. The cleaner produces 6,626 US stations using documented median-price assumptions. See [the cleaning policy](docs/fuel-data-cleaning.md) for commands and verified counts. Coordinate enrichment now has one verified OSM station; see [the enrichment evidence and coverage limits](docs/station-enrichment.md). No station coordinates have been invented.
 
 ## Windows PostGIS repair
 
@@ -54,4 +54,5 @@ See [actual final verification results and remaining assessment scope](docs/fina
 
 ## Routing phase
 
-See [routing setup, API contract, provider budgets and live coverage limitations](docs/routing-guide.md). `POST /api/routes/optimize/` accepts US endpoints and returns a fuel plan when genuine station coverage is sufficient. A real short route and cached repeat were verified; long/multi-stop calculations are verified in isolated tests, while live station enrichment remains a data blocker.
+See [routing setup, API contract, provider budgets and live coverage limitations](docs/routing-guide.md). `POST /api/routes/optimize/` accepts US endpoints and returns a fuel plan when genuine station coverage is sufficient. A live 595.21-mile Indianapolis-to-Minneapolis route now succeeds with a real fuel purchase at Kwik Trip #796. [Enrichment verification](docs/station-enrichment.md) documents the source and Postman request. Only 1 of 6,626 stations is verified; nationwide coverage remains incomplete.
+

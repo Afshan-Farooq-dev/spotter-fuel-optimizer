@@ -1,0 +1,146 @@
+{
+  "request": {
+    "start": {
+      "longitude": -86.1581,
+      "latitude": 39.7684
+    },
+    "destination": {
+      "longitude": -93.265,
+      "latitude": 44.9778
+    }
+  },
+  "results": [
+    {
+      "start": {
+        "longitude": -86.1581,
+        "latitude": 39.7684,
+        "state": "IN",
+        "label": null
+      },
+      "destination": {
+        "longitude": -93.265,
+        "latitude": 44.9778,
+        "state": "MN",
+        "label": null
+      },
+      "distance_metres": "957889.6",
+      "distance_miles": "595.2050027837429412232561839",
+      "duration_seconds": "37679.399999999994",
+      "fuel_stops": [
+        {
+          "station_id": 2,
+          "source_id": "9",
+          "name": "KWIK TRIP #796",
+          "city": "Tomah",
+          "state": "WI",
+          "longitude": -90.5028122,
+          "latitude": 44.0189225,
+          "route_mile": "426.2396976656327050027837429",
+          "price_per_gallon": "3.2873333300",
+          "gallons_purchased": "9.52050027837429412232561839",
+          "cost": "31.30",
+          "arrival_fuel_gallons": "7.37603023343672949972162571",
+          "departure_fuel_gallons": "16.89653051181102362204724410",
+          "road_snap_distance_metres": 5.13
+        }
+      ],
+      "total_cost": "31.30",
+      "currency": "USD",
+      "fuel_consumed_gallons": "59.52050027837429412232561839",
+      "fuel_purchased_gallons": "9.52050027837429412232561839",
+      "initial_fuel_gallons": "50",
+      "remaining_fuel_gallons": "0E-26",
+      "reserve_gallons": "0",
+      "vehicle": {
+        "maximum_range_miles": 500,
+        "mpg": 10,
+        "tank_gallons": 50
+      },
+      "route_waypoint_station_ids": [
+        2
+      ],
+      "optimization_scope": "minimum fuel purchases for the selected verified driving sequence",
+      "cost_basis": "new purchases; historical cost of initial fuel excluded",
+      "attribution": "openrouteservice by HeiGIT; OpenStreetMap contributors",
+      "provider_usage": {
+        "directions_calls": 2,
+        "directions_cache_hits": 0,
+        "geocoding_calls": 0,
+        "geocoding_cache_hits": 0
+      },
+      "verified_corridor_candidates": 1,
+      "fuel_constraints_verified": true,
+      "elapsed_ms": 5337.6,
+      "http_status": 200,
+      "geometry_points": 4185
+    },
+    {
+      "start": {
+        "longitude": -86.1581,
+        "latitude": 39.7684,
+        "state": "IN",
+        "label": null
+      },
+      "destination": {
+        "longitude": -93.265,
+        "latitude": 44.9778,
+        "state": "MN",
+        "label": null
+      },
+      "distance_metres": "957889.6",
+      "distance_miles": "595.2050027837429412232561839",
+      "duration_seconds": "37679.399999999994",
+      "fuel_stops": [
+        {
+          "station_id": 2,
+          "source_id": "9",
+          "name": "KWIK TRIP #796",
+          "city": "Tomah",
+          "state": "WI",
+          "longitude": -90.5028122,
+          "latitude": 44.0189225,
+          "route_mile": "426.2396976656327050027837429",
+          "price_per_gallon": "3.2873333300",
+          "gallons_purchased": "9.52050027837429412232561839",
+          "cost": "31.30",
+          "arrival_fuel_gallons": "7.37603023343672949972162571",
+          "departure_fuel_gallons": "16.89653051181102362204724410",
+          "road_snap_distance_metres": 5.13
+        }
+      ],
+      "total_cost": "31.30",
+      "currency": "USD",
+      "fuel_consumed_gallons": "59.52050027837429412232561839",
+      "fuel_purchased_gallons": "9.52050027837429412232561839",
+      "initial_fuel_gallons": "50",
+      "remaining_fuel_gallons": "0E-26",
+      "reserve_gallons": "0",
+      "vehicle": {
+        "maximum_range_miles": 500,
+        "mpg": 10,
+        "tank_gallons": 50
+      },
+      "route_waypoint_station_ids": [
+        2
+      ],
+      "optimization_scope": "minimum fuel purchases for the selected verified driving sequence",
+      "cost_basis": "new purchases; historical cost of initial fuel excluded",
+      "attribution": "openrouteservice by HeiGIT; OpenStreetMap contributors",
+      "provider_usage": {
+        "directions_calls": 0,
+        "directions_cache_hits": 2,
+        "geocoding_calls": 0,
+        "geocoding_cache_hits": 0
+      },
+      "verified_corridor_candidates": 1,
+      "fuel_constraints_verified": true,
+      "elapsed_ms": 448.53,
+      "http_status": 200,
+      "geometry_points": 4185
+    }
+  ],
+  "counts": {
+    "total": 6626,
+    "verified": 1
+  }
+}
