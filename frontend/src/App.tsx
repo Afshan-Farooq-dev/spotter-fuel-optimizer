@@ -8,14 +8,14 @@ import {RouteSummary} from '@/components/route-summary'
 import {RouteMap} from '@/components/route-map'
 import {RouteItinerary} from '@/components/route-itinerary'
 import {useRoute} from '@/hooks/use-route'
-import {VERIFIED_TRIP} from '@/lib/api'
+import {VERIFIED_TRIP,parseLocation} from '@/lib/api'
 const empty:TripForm={start:'',destination:'',initial:50,reserve:0,verified:false}
 function App(){
  const [form,setForm]=useState<TripForm>(empty),[selected,setSelected]=useState<number|null>(null),[health,setHealth]=useState('connecting')
  const {result,loading,error,submit,reset}=useRoute()
  useEffect(()=>{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),5000);fetch('/api/health/',{signal:controller.signal}).then(r=>setHealth(r.ok?'online':'offline')).catch(()=>setHealth('offline'));return()=>{clearTimeout(timeout);controller.abort()}},[])
  function edit(patch:Partial<TripForm>){reset();setSelected(null);setForm(f=>({...f,...patch,verified:('start' in patch || 'destination' in patch)?false:f.verified}))}
- async function plan(next=form){setSelected(null);await submit({start:next.verified?VERIFIED_TRIP.start:next.start,destination:next.verified?VERIFIED_TRIP.destination:next.destination,initial_fuel_gallons:next.initial,reserve_gallons:next.reserve})}
+ async function plan(next=form){setSelected(null);await submit({start:next.verified?VERIFIED_TRIP.start:parseLocation(next.start),destination:next.verified?VERIFIED_TRIP.destination:parseLocation(next.destination),initial_fuel_gallons:next.initial,reserve_gallons:next.reserve})}
  function example(){const next={start:'Indianapolis, IN',destination:'Minneapolis, MN',initial:50,reserve:0,verified:true};setForm(next);void plan(next)}
  function selectStop(id:number){setSelected(id);document.querySelector('.map-frame')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'})}
  function download(){if(!result)return;const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='fuel-route-plan.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}

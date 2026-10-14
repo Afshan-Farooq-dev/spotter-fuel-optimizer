@@ -15,3 +15,8 @@ export async function optimizeRoute(input: OptimizeInput, signal: AbortSignal): 
 export const VERIFIED_TRIP = { start: {longitude:-86.1581,latitude:39.7684}, destination: {longitude:-93.265,latitude:44.9778} } as const
 export const number = (value:string|number, digits=1) => Number(value).toLocaleString('en-US',{maximumFractionDigits:digits,minimumFractionDigits:digits})
 export const money = (value:string|number) => Number(value).toLocaleString('en-US',{style:'currency',currency:'USD'})
+
+export function parseLocation(value:string):Location {
+ const match=value.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/)
+ return match ? {latitude:Number(match[1]),longitude:Number(match[2])} : value.trim()
+}
