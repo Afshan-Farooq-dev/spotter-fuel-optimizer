@@ -28,8 +28,8 @@ class Candidate:
     station_id: int
     miles: Decimal
     price: Decimal
-    longitude: float = 0.0
-    latitude: float = 0.0
+    longitude: float | None = None
+    latitude: float | None = None
 
 
 @dataclass(frozen=True)

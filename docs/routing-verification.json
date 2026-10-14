@@ -1,0 +1,102 @@
+{
+  "automated_tests_passed": 89,
+  "django_checks": "zero issues",
+  "migration_consistency": "no changes detected",
+  "stations": 6626,
+  "source_prices": 7505,
+  "census_boundaries": 51,
+  "verified_real_station_locations": 0,
+  "source_csv_sha256": "c704371f141ded9c54df6c32d488a0ba2ceb589f88c936c967daa5330e0cd241",
+  "live_http_checks": [
+    {
+      "request": "Optimize a short US route",
+      "status": 200,
+      "distance_miles": "238.7805838900819215779845701",
+      "total_cost": "0.00",
+      "provider_usage": {
+        "directions_calls": 0,
+        "directions_cache_hits": 1,
+        "geocoding_calls": 0,
+        "geocoding_cache_hits": 0
+      },
+      "elapsed_ms": 699.86,
+      "error": null
+    },
+    {
+      "request": "Short route cached repeat",
+      "status": 200,
+      "distance_miles": "238.7805838900819215779845701",
+      "total_cost": "0.00",
+      "provider_usage": {
+        "directions_calls": 0,
+        "directions_cache_hits": 1,
+        "geocoding_calls": 0,
+        "geocoding_cache_hits": 0
+      },
+      "elapsed_ms": 43.29,
+      "error": null
+    },
+    {
+      "request": "Optimize a long US route",
+      "status": 422,
+      "distance_miles": null,
+      "total_cost": null,
+      "provider_usage": null,
+      "elapsed_ms": null,
+      "error": {
+        "code": "insufficient_station_coverage",
+        "message": "Verified fuel coverage does not reach the destination.",
+        "details": {
+          "verified_corridor_candidates": 0,
+          "baseline_distance_miles": "1081.374771335401256661099181",
+          "directions_calls": 0,
+          "directions_cache_hits": 1
+        }
+      }
+    },
+    {
+      "request": "Optimize a route requiring multiple stops",
+      "status": 422,
+      "distance_miles": null,
+      "total_cost": null,
+      "provider_usage": null,
+      "elapsed_ms": null,
+      "error": {
+        "code": "insufficient_station_coverage",
+        "message": "Verified fuel coverage does not reach the destination.",
+        "details": {
+          "verified_corridor_candidates": 0,
+          "baseline_distance_miles": "2794.214785651793525809273841",
+          "directions_calls": 0,
+          "directions_cache_hits": 1
+        }
+      }
+    },
+    {
+      "request": "Reject invalid route input",
+      "status": 400,
+      "distance_miles": null,
+      "total_cost": null,
+      "provider_usage": null,
+      "elapsed_ms": null,
+      "error": null
+    },
+    {
+      "request": "Reject a non-US endpoint",
+      "status": 400,
+      "distance_miles": null,
+      "total_cost": null,
+      "provider_usage": null,
+      "elapsed_ms": null,
+      "error": {
+        "code": "invalid_location",
+        "message": "Start and destination must lie within the 50 US states or DC.",
+        "details": {}
+      }
+    }
+  ],
+  "live_long_route_blocker": "No accepted station coordinates in tested source sample",
+  "successful_multi_stop_verification": "isolated synthetic fixtures and independent exact solver; no production fixture points",
+  "pushed": false,
+  "frontend_started": false
+}

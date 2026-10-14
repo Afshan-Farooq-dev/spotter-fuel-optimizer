@@ -146,4 +146,4 @@ is available at `data/processed/backend_verification.json`. The temporary
 verification server is stopped afterward.
 
 The Postman collection is available in `docs/postman/`; see its README for import
-and runner instructions. Routing optimization and frontend features are not implemented.
+and runner instructions. Route optimization is now implemented; see routing-guide.md for its API and current coverage limitations. Frontend features are not implemented.

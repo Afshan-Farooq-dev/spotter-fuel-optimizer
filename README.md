@@ -1,6 +1,6 @@
 # Spotter Fuel Optimizer
 
-Django REST Framework backend for the Spotter Labs assessment. The stations and routes apps are scaffolded. CSV cleaning, transactional database imports, cached geocoding preparation and read-only station APIs are implemented. Routing optimization and the frontend are not implemented yet.
+Django REST Framework backend for the Spotter Labs assessment. The stations and routes apps are scaffolded. CSV cleaning, transactional database imports, cached geocoding preparation and read-only station APIs are implemented. Route geometry, fuel purchase optimization and the POST routing API are implemented. Live long-route success requires verified station coordinate coverage; the frontend is not implemented.
 
 ## Local development on Windows
 
@@ -51,3 +51,7 @@ Run `./backend/.venv/Scripts/python.exe -m pytest -q --reuse-db` after preparing
 Import [the Postman collection](docs/postman/Spotter-Fuel-Optimizer.postman_collection.json), start Django, and run requests in order. [Postman instructions](docs/postman/README.md) explain the automatic station ID capture.
 
 See [actual final verification results and remaining assessment scope](docs/final-verification.md).
+
+## Routing phase
+
+See [routing setup, API contract, provider budgets and live coverage limitations](docs/routing-guide.md). `POST /api/routes/optimize/` accepts US endpoints and returns a fuel plan when genuine station coverage is sufficient. A real short route and cached repeat were verified; long/multi-stop calculations are verified in isolated tests, while live station enrichment remains a data blocker.

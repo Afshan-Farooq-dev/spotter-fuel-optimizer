@@ -55,3 +55,12 @@ def test_driving_detour_cannot_break_maximum_range(station):
     with patch("apps.routes.services.planning.route_candidates",return_value=[candidate]):
         with pytest.raises(PlanningError) as error:plan_route(DATA,provider=provider,resolver=FixedResolver())
     assert error.value.code=="verified_route_infeasible"
+
+
+def test_selected_stop_must_have_real_coordinates(station):
+    provider=SyntheticDirections(800)
+    candidate=Candidate(station.pk,Decimal(400),Decimal(3))
+    with patch("apps.routes.services.planning.route_candidates",return_value=[candidate]):
+        with pytest.raises(PlanningError) as error:plan_route(DATA,provider=provider,resolver=FixedResolver())
+    assert error.value.code=="missing_station_coordinates"
+    assert provider.routing_calls==1

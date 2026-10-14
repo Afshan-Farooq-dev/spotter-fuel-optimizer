@@ -17,3 +17,7 @@ assessment CSV first if the station list is empty.
 
 The generated collection and its resolved HTTP requests were checked locally.
 The Postman desktop runner itself was not executed in the automated verification.
+
+## Routing requests
+
+Five POST requests were added for short, long, multi-stop, invalid-input and non-US scenarios. Long/multi-stop live success requires verified station coverage; a documented 422 coverage failure is expected until enrichment succeeds. Short routes with the default full tank may cost zero new purchases. See ../routing-guide.md for the fuel accounting and provider setup.

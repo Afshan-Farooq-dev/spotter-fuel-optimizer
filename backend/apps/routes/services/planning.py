@@ -41,10 +41,14 @@ def plan_route(data,*,provider=None,resolver=None):
             except PlanningError:provisional=optimize_fuel(route.miles,candidates,initial_gallons=initial,reserve_gallons=reserve)
         except PlanningError as error:
             error.code="insufficient_station_coverage"
-            error.details={"verified_corridor_candidates":len(candidates),"fuel_constraints_verified":True}
+            error.details={"verified_corridor_candidates":len(candidates),"baseline_distance_miles":str(route.miles),
+                           "directions_calls":provider.routing_calls,"directions_cache_hits":provider.cache_hits}
             raise
         lookup={s.station_id:s for s in candidates}
         selected=[lookup[p.station_id] for p in provisional.purchases]
+        if any(s.longitude is None or s.latitude is None for s in selected):
+            error=PlanningError("Selected fuel station has no verified coordinate.")
+            error.code="missing_station_coordinates";raise error
         if len(selected)>48:raise PlanningError("Fuel plan exceeds ORS's 50-waypoint request limit.")
         coordinates=[origin]+[[s.longitude,s.latitude] for s in selected]+[finish]
         route=driving_route(provider,coordinates,ttl_seconds=settings.ROUTE_CACHE_SECONDS)

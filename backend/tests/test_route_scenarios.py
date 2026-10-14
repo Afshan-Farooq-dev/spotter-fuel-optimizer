@@ -41,6 +41,7 @@ def test_long_trip_without_verified_station_coverage_returns_422():
         response=APIClient().post("/api/routes/optimize/",DATA,format="json")
     assert response.status_code==422
     assert response.json()["error"]["code"]=="insufficient_station_coverage"
+    assert "fuel_constraints_verified" not in response.json()["error"]["details"]
 
 
 def test_non_us_endpoint_is_rejected_before_routing(texas_boundary):
