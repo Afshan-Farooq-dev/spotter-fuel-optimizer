@@ -1,18 +1,12 @@
 # Spotter Fuel Optimizer
 
-Django REST Framework backend for the Spotter Labs assessment. The stations and routes apps are scaffolded. CSV cleaning, transactional database imports, cached geocoding preparation and read-only station APIs are implemented. Route geometry, fuel purchase optimization and the POST routing API are implemented. Live long-route success requires verified station coordinate coverage; the frontend is not implemented.
+A Django REST API and React map workspace for the Spotter Labs assessment. It returns actual US driving geometry, selects verified fuel stops, and calculates fuel purchases using the supplied CSV. The vehicle has a **500-mile range, 10 MPG and a 50-gallon tank**.
 
-## Local development on Windows
+## Backend setup
 
-Python 3.12, PostgreSQL 16 and PostGIS are used locally. Install the compatible PostGIS bundle using Stack Builder. Enable the extension in the application database as the PostgreSQL administrator:
+Verified locally with Python 3.12, PostgreSQL 16/PostGIS, and the pinned packages in `backend/requirements.txt`. Install PostgreSQL, its compatible PostGIS bundle, and native GDAL/GEOS/PROJ libraries. Create an application database owned by a dedicated non-superuser role; enable `CREATE EXTENSION IF NOT EXISTS postgis;` in that database as an administrator.
 
-```sql
-CREATE EXTENSION IF NOT EXISTS postgis;
-```
-
-Create a dedicated application role and make it the database owner. The Django application uses `spotter_app`, not the PostgreSQL superuser.
-
-From the repository root in PowerShell:
+From the repository root in PowerShell, on a fresh checkout:
 
 ```powershell
 py -3.12 -m venv backend/.venv
@@ -20,38 +14,93 @@ py -3.12 -m venv backend/.venv
 Copy-Item backend/.env.example backend/.env
 ```
 
-Copy the environment example only on a fresh setup; do not overwrite an existing `.env`. Generate a Django secret, supply the database password, and adapt the optional Windows GIS DLL paths to the installed bundle. `.env`, its backups, and `.env.postgres-admin` are local ignored files and must never be committed or shared.
+Do not overwrite an existing `.env`. Set a generated `DJANGO_SECRET_KEY`, database connection values and your `ORS_API_KEY` locally. Adapt or omit the Windows GIS library paths for your installation. The ORS key is required for uncached live routing and geocoding and stays on the backend.
 
 ```powershell
-./backend/.venv/Scripts/python.exe backend/manage.py check --database default
 ./backend/.venv/Scripts/python.exe backend/manage.py migrate
-./backend/.venv/Scripts/python.exe backend/manage.py runserver
+./backend/.venv/Scripts/python.exe backend/manage.py import_fuel_prices data/raw/fuel-prices-for-be-assessment.csv
+./backend/.venv/Scripts/python.exe backend/manage.py import_us_boundaries data/reference/cb_2024_us_state_500k.zip
+./backend/.venv/Scripts/python.exe backend/manage.py enrich_osm_stations --file data/reference/osm/tomah-fuel.json --state WI --limit 100
+./backend/.venv/Scripts/python.exe backend/manage.py check --database default
+./backend/.venv/Scripts/python.exe backend/manage.py runserver 127.0.0.1:8000
 ```
 
-The development server runs at http://127.0.0.1:8000/. Health is at `/api/health/`, stations at `/api/stations/`, and station detail at `/api/stations/{id}/`. The admin login is at `/admin/login/`; no administrator account is created automatically. A 404 at the root URL is expected.
+The imports are repeatable. The OSM source snapshot reproduces the verified Tomah station; broader coverage requires additional trustworthy source data. Database/native GIS and isolated test database details: [backend guide](docs/backend-api.md).
 
-See [backend import, geocoding and API instructions](docs/backend-api.md).
+## Frontend setup
 
-## Data
+Use Node.js 24 (the verified local version). In a second PowerShell terminal:
 
-The original assessment CSV is preserved unchanged in `data/raw/fuel-prices-for-be-assessment.csv`. It contains 8,151 rows. The cleaner produces 6,626 US stations using documented median-price assumptions. See [the cleaning policy](docs/fuel-data-cleaning.md) for commands and verified counts. Coordinate enrichment now has one verified OSM station; see [the enrichment evidence and coverage limits](docs/station-enrichment.md). No station coordinates have been invented.
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
 
-## Windows PostGIS repair
+Open **http://127.0.0.1:5173/** and click **Load verified route**. React, Vite, Tailwind CSS, shadcn/ui and Leaflet render the backend's geometry, fuel summary and station itinerary. Location inputs accept US place text or `latitude, longitude`; exact coordinates avoid ambiguous geocoding. The example supplies only endpoints, not calculated results.
 
-The local installation contained a `libxml2-2.dll` requiring an absent `liblzma-5.dll`. Restoring the XML DLL from the matching official PostgreSQL 16 / PostGIS 3.4.2 archive resolved extension loading. The prior DLL was backed up outside the repository before replacement. Avoid downloading standalone DLLs from unofficial sites.
+Vite proxies `/api` to Django on port 8000. Production requires a same-origin reverse proxy to Django and static hosting for the frontend build; Vite's development proxy is not a production service. Never expose ORS credentials through frontend environment variables. [Frontend instructions](frontend/README.md) · [design references](docs/frontend-design.md).
 
-Django reads optional `GIS_LIBRARY_DIRECTORY`, `GDAL_LIBRARY_PATH` and `GEOS_LIBRARY_PATH` from `.env`. On Windows, the configured DLL directory is added to the process search paths. Other platforms can omit these variables and use their system GIS libraries.
+## API
 
-## Verification
+Development base URL: `http://127.0.0.1:8000`. No authentication is configured for this assessment.
 
-Run `./backend/.venv/Scripts/python.exe -m pytest -q --reuse-db` after preparing the isolated PostGIS test database as described in the backend instructions.
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/health/` | Database readiness |
+| GET | `/api/stations/` | Paginated prices, identity and coordinate status |
+| GET | `/api/stations/{id}/` | Station detail using its internal integer ID |
+| POST | `/api/routes/optimize/` | Driving geometry and fuel purchase plan |
 
-## Postman and final checks
+Station filters include `state`, `source_id`, `geocoded`, `search`, `page` and `page_size` (maximum 100).
 
-Import [the Postman collection](docs/postman/Spotter-Fuel-Optimizer.postman_collection.json), start Django, and run requests in order. [Postman instructions](docs/postman/README.md) explain the automatic station ID capture.
+Verified route request, sent as JSON:
 
-See [actual final verification results and remaining assessment scope](docs/final-verification.md).
+```json
+{
+  "start": {"longitude": -86.1581, "latitude": 39.7684},
+  "destination": {"longitude": -93.265, "latitude": 44.9778},
+  "initial_fuel_gallons": 50,
+  "reserve_gallons": 0
+}
+```
 
-## Routing phase
+Start/destination can also be US place strings. Optional `corridor_metres` accepts 100–5000. API coordinate objects and GeoJSON use **longitude, latitude**, unlike the frontend's typed coordinate input. Responses include LineString geometry, distance/duration, station coordinates and prices, gallons purchased, per-stop costs, total cost and provider call counts. Prices and accounting quantities use decimal strings.
 
-See [routing setup, API contract, provider budgets and live coverage limitations](docs/routing-guide.md). `POST /api/routes/optimize/` accepts US endpoints and returns a fuel plan when genuine station coverage is sufficient. A live 595.21-mile Indianapolis-to-Minneapolis route now succeeds with a real fuel purchase at Kwik Trip #796. [Enrichment verification](docs/station-enrichment.md) documents the source and Postman request. Only 1 of 6,626 stations is verified; nationwide coverage remains incomplete.
+Invalid inputs/non-US endpoints return 400; insufficient verified coverage or infeasible fuel legs return 422; provider/database failures return safe errors (normally 503). Request throttling returns 429. See [routing guide](docs/routing-guide.md) and [optimization contract](docs/routing-contract.md).
+
+## Postman demonstration
+
+Import [Spotter-Fuel-Optimizer.postman_collection.json](docs/postman/Spotter-Fuel-Optimizer.postman_collection.json). Set `base_url` to `http://127.0.0.1:8000`. The 11 requests include health, station APIs, optimization scenarios and **Verified refueling: Indianapolis to Minneapolis**, whose assertions require HTTP 200 and a genuine fuel stop. Run the station list before station detail to capture an ID.
+
+[Postman instructions](docs/postman/README.md) · [Loom demonstration script, 4:45 maximum](docs/loom-demo-script.md).
+
+## Data, accuracy and coverage limits
+
+- The original 8,151-row CSV is preserved unchanged. Cleaning produces 6,626 US stations and 7,505 retained price observations, excluding Canadian entries and exact duplicates. Conflicting prices use a documented median; prices are supplied USD-per-US-gallon observations, **not live pump prices**.
+- **1 station is verified; 6,625 currently lack verified coordinates.** This includes unattempted/rejected entries, not proof that the businesses are absent. Nationwide coverage is incomplete; some long routes correctly return 422. No station coordinates or city centers are invented.
+- The verified Indianapolis–Minneapolis response covered **595.205 miles**, with a stop at Kwik Trip #796 in Tomah, buying **9.5205 gallons for $31.30**. These are recorded results, not fixed application values. The cold request used two live ORS directions calls; a repeat reused both cached geometries.
+- The published OSM point is an actual fuel-facility boundary vertex, not a surveyed driveway entrance. The demonstrated ORS road snap was 5.13 metres. OSM coordinate sources require attribution and applicable ODbL obligations; [provenance and enrichment policies](docs/station-enrichment.md) explain source verification and limitations.
+- Initial fuel defaults to a full tank. Expenditure includes **new purchases only**, excluding the historical cost of starting fuel. A short trip can therefore cost zero additional purchases. Optional reserve is enforced.
+- Fuel optimization is optimal for a fixed selected station sequence, not globally optimal over every possible road path/detour. Actual final driving legs and fuel conservation are checked. Driving-car directions do not guarantee truck clearance or access.
+- Direction and geocoding caches reduce provider calls. Stops normally require a second directions call to validate real detours; one-call routing is used when no refueling is needed. Live provider quotas and availability remain external constraints.
+
+[Cleaning policy](docs/fuel-data-cleaning.md) · [actual route evidence](docs/station-enrichment-verification.json).
+
+## Verification and remaining warnings
+
+Existing checks passed: **96 backend tests**, Django checks, **3 live desktop/mobile browser tests**, and the frontend production build. The collection's verified request also passed four assertions through its HTTP harness; the full Postman desktop runner was not automated. Final documentation preparation did not rerun browser tests or rebuild.
+
+For future verification, with the dedicated PostGIS test database prepared and Django running where needed:
+
+```powershell
+./backend/.venv/Scripts/python.exe -m pytest -q --reuse-db
+cd frontend
+npm run build
+npm run lint
+npx playwright test
+```
+
+Remaining non-blocking warnings: Vite's main JavaScript bundle is about **509.69 kB minified / 158.16 kB gzip**, exceeding its 500 kB warning threshold; map code splitting is a future optimization. Lint reports two fast-refresh export warnings in generated shadcn `button.tsx` and `badge.tsx`, with no lint errors.
+
+Environment files, virtual environments, dependencies, build output, logs, derived data and browser artifacts are excluded from Git. Keep secrets local. Git history is preserved; no submission push has been performed.

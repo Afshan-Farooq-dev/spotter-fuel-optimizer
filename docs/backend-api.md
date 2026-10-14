@@ -44,8 +44,9 @@ https://giscience.github.io/openrouteservice/api-reference/endpoints/geocoder/
 
 Set a personal `ORS_API_KEY` in the ignored local `backend/.env` to make live calls.
 Check your account's current quotas and attribution requirements before bulk use.
-The application does not ship a key and implementation verification made no external
-geocoding calls.
+The application does not ship a key. Initial station-API verification used mocked
+providers; subsequent routing/enrichment work used live providers, documented in
+station-enrichment.md.
 
 ```powershell
 ./backend/.venv/Scripts/python.exe backend/manage.py geocode_stations --limit 10 --dry-run
@@ -76,14 +77,15 @@ Accepted coordinates must have all of the following:
 - one distinct accepted coordinate pair.
 
 The status `verified` means these provider-validation criteria passed, not a
-manual site survey. Country/state membership relies on provider metadata; coarse
-bounds are only a plausibility check, not exact administrative polygons. Route
-accessibility is not validated in this phase. Strict matching may leave highway
+manual site survey. Current acceptance also checks actual Census state polygons. Coarse bounds are
+only an additional plausibility check. Routing separately validates fuel-stop
+road snapping and actual driving-leg reachability. Strict matching may leave highway
 exit addresses unresolved; that is preferable to assigning an uncertain point.
 
-Coordinates remain null for no-match/ambiguous results. No station in the
-development database has been geocoded yet. Synthetic coordinates exist only in
-isolated test responses and have not been imported into the development database.
+Coordinates remain null for no-match/ambiguous results. The current development
+database has one verified OSM station, Kwik Trip #796 in Tomah; see
+station-enrichment.md for source provenance and nationwide coverage limitations.
+Synthetic coordinates exist only in isolated tests, never in development data.
 
 ## REST API
 
@@ -146,4 +148,4 @@ is available at `data/processed/backend_verification.json`. The temporary
 verification server is stopped afterward.
 
 The Postman collection is available in `docs/postman/`; see its README for import
-and runner instructions. Route optimization is now implemented; see routing-guide.md for its API and current coverage limitations. Frontend features are not implemented.
+and runner instructions. Route optimization is now implemented; see routing-guide.md for its API and current coverage limitations. The React frontend is implemented; see ../frontend/README.md.
