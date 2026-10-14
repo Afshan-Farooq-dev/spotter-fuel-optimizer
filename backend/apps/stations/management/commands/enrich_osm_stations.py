@@ -26,9 +26,14 @@ class Command(BaseCommand):
         if options['state']:stations=stations.filter(state=options['state'])
         if options['station_id']:stations=stations.filter(pk=options['station_id'])
         # Each station/extract/policy checkpoint is durable; interrupted runs resume without a provider call.
-        for station in stations[:options['limit']]:
+        processed=0
+        for station in stations.iterator(chunk_size=200):
             result=enrich(station,cache,options['refresh'],options['dry_run'])
+            if result.get('resumed'):continue
+            processed+=1
             self.stdout.write(f"{station.pk}: {result['status']} resumed={result.get('resumed',False)}")
+            if processed>=options['limit']:break
         total=FuelStation.objects.count()
         verified=StationLocation.objects.filter(status='verified').count()
         self.stdout.write(f'Verified: {verified}; without verified coordinates: {total-verified}; total: {total}')
+
