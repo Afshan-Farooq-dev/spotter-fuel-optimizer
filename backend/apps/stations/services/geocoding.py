@@ -75,6 +75,9 @@ def choose_match(station, response, *, min_confidence=0.9):
 
 
 def geocode_station(station, provider, *, refresh=False, cache_days=30, min_confidence=0.9):
+    # Refreshing one provider must not discard another provider's verified evidence.
+    if StationLocation.objects.filter(station=station, status="verified").exclude(provider=provider.name).exists():
+        return {"station_id": station.pk, "status": "verified", "cache_hit": True, "preserved_existing": True}
     query = station_query(station)
     cache_identity = {"provider": provider.name, "endpoint": provider.endpoint,
                       "query": {k: normalized(v) for k, v in query.items()}}
@@ -103,6 +106,8 @@ def geocode_station(station, provider, *, refresh=False, cache_days=30, min_conf
         if station_query(locked) != query:
             raise GeocodingError("Station address changed during geocoding; retry.")
         location, _ = StationLocation.objects.get_or_create(station=locked)
+        if location.status == "verified" and location.provider != provider.name:
+            return {"station_id": station.pk, "status": "verified", "cache_hit": True, "preserved_existing": True}
         location.point = match.get("point")
         location.status = status
         location.provider = provider.name
@@ -116,3 +121,4 @@ def geocode_station(station, provider, *, refresh=False, cache_days=30, min_conf
         location.full_clean()
         location.save()
     return {"station_id": station.pk, "status": status, "cache_hit": hit}
+

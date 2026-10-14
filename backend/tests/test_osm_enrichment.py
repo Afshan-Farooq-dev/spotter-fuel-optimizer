@@ -59,3 +59,16 @@ def test_conflicting_opis_and_exit_rejected(osm_station):
     assert identity(osm_station,element(**{'ref:exit':'13'})['tags']) is None
     factors=identity(osm_station,element(**{'ref:exit':'12','ref:opis':'123'})['tags'])
     assert 'highway_exit' in factors and 'OPIS ID' in factors
+
+@pytest.mark.django_db
+def test_pelias_refresh_preserves_osm_evidence(osm_station):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+    from apps.stations.services.geocoding import geocode_station
+    source=GeocodingCache.objects.create(key='c'*64,provider='test',query={},response={'elements':[element()]})
+    enrich(osm_station,source)
+    provider=SimpleNamespace(name='pelias',search=Mock(side_effect=AssertionError('Must preserve verified OSM evidence')))
+    result=geocode_station(osm_station,provider,refresh=True)
+    assert result['preserved_existing']
+    provider.search.assert_not_called()
+    assert StationLocation.objects.get(station=osm_station).point.x==-95.3
