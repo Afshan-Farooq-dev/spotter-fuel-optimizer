@@ -22,5 +22,4 @@ The Postman desktop runner itself was not executed in the automated verification
 
 Five POST requests were added for short, long, multi-stop, invalid-input and non-US scenarios. Long/multi-stop live success requires verified station coverage; a documented 422 coverage failure is expected until enrichment succeeds. Short routes with the default full tank may cost zero new purchases. See ../routing-guide.md for the fuel accounting and provider setup.
 
-The added **Verified refueling: Indianapolis to Minneapolis** request requires HTTP 200 and actual fuel stops. See [source evidence and the HTTP test harness](../station-enrichment.md). Run 
-ode docs/postman/verify-refueling.mjs from the repository root with Django running to execute that request and its four assertions.
+The added **Verified refueling: Indianapolis to Minneapolis** request requires HTTP 200 and actual fuel stops. See [source evidence and the HTTP test harness](../station-enrichment.md). Run `node docs/postman/verify-refueling.mjs` from the repository root with Django running to execute that request and its four assertions.

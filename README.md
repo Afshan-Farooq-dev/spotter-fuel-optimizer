@@ -55,4 +55,3 @@ See [actual final verification results and remaining assessment scope](docs/fina
 ## Routing phase
 
 See [routing setup, API contract, provider budgets and live coverage limitations](docs/routing-guide.md). `POST /api/routes/optimize/` accepts US endpoints and returns a fuel plan when genuine station coverage is sufficient. A live 595.21-mile Indianapolis-to-Minneapolis route now succeeds with a real fuel purchase at Kwik Trip #796. [Enrichment verification](docs/station-enrichment.md) documents the source and Postman request. Only 1 of 6,626 stations is verified; nationwide coverage remains incomplete.
-

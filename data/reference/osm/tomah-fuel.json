@@ -1,0 +1,60 @@
+{
+  "version": 0.6,
+  "generator": "SpotterFuelOptimizer source snapshot",
+  "source_url": "https://api.openstreetmap.org/api/0.6/way/1204194481/full.json",
+  "attribution": "OpenStreetMap contributors",
+  "license": "ODbL 1.0",
+  "fetched_date": "2026-10-14",
+  "elements": [
+    {
+      "type": "way",
+      "id": 1204194481,
+      "timestamp": "2025-07-25T03:13:51Z",
+      "version": 3,
+      "changeset": 169429472,
+      "nodes": [
+        5742533677,
+        11161095552,
+        11161095551,
+        11161095550,
+        5742533677
+      ],
+      "tags": {
+        "addr:city": "Tomah",
+        "addr:housenumber": "310",
+        "addr:postcode": "54660",
+        "addr:state": "WI",
+        "addr:street": "East McCoy Boulevard",
+        "amenity": "fuel",
+        "brand": "Kwik Trip",
+        "brand:wikidata": "Q6450420",
+        "building": "roof",
+        "layer": "1",
+        "name": "Kwik Trip",
+        "ref": "796"
+      },
+      "geometry": [
+        {
+          "lat": 44.0189225,
+          "lon": -90.5028122
+        },
+        {
+          "lat": 44.0189334,
+          "lon": -90.5023684
+        },
+        {
+          "lat": 44.0188244,
+          "lon": -90.5023107
+        },
+        {
+          "lat": 44.0188176,
+          "lon": -90.5027626
+        },
+        {
+          "lat": 44.0189225,
+          "lon": -90.5028122
+        }
+      ]
+    }
+  ]
+}

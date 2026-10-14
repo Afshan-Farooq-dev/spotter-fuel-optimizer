@@ -30,13 +30,13 @@ Each station/extract/policy combination has a durable checkpoint and evidence in
 From the repository root with the existing database configuration:
 
 ```powershell
-./backend/.venv/Scripts/python.exe backend/manage.py enrich_osm_stations --file data/processed/tomah-osm.json --station-id 2
+./backend/.venv/Scripts/python.exe backend/manage.py enrich_osm_stations --file data/reference/osm/tomah-fuel.json --station-id 2
 ./backend/.venv/Scripts/python.exe backend/manage.py enrich_osm_stations --file data/processed/region-osm.json --state WI --limit 100 --dry-run
 ./backend/.venv/Scripts/python.exe backend/manage.py enrich_osm_stations --file data/processed/region-osm.json --state WI --limit 100
 ./backend/.venv/Scripts/python.exe backend/manage.py enrich_osm_stations --bbox 43.9 -90.6 44.1 -90.4 --state WI --limit 100
 ```
 
-Offline input is a complete trusted OSM/Overpass JSON export with elements, tags and geometry. Do not supply invented or unlicensed input. Closed way geometry must contain the original ordered node coordinates; never insert a computed center. Dry-run creates/reuses an extract cache but does not update station locations or match checkpoints. The local diagnostic extract is ignored by Git; the live database retains it in GeocodingCache. This project does not yet convert regional PBF files to JSON. Obtain an OSM JSON export or supply such a converter for bulk work.
+Offline input is a complete trusted OSM/Overpass JSON export with elements, tags and geometry. Do not supply invented or unlicensed input. Closed way geometry must contain the original ordered node coordinates; never insert a computed center. Dry-run creates/reuses an extract cache but does not update station locations or match checkpoints. The original diagnostic download is ignored by Git; a minimal ODbL fuel-way snapshot is included in data/reference/osm/tomah-fuel.json, preserving the published vertex coordinates and node IDs. The live database also retains the source extract in GeocodingCache. This project does not yet convert regional PBF files to JSON. Obtain an OSM JSON export or supply such a converter for bulk work.
 
 Prioritize I-90/I-94 through Wisconsin, then I-55/I-44 and I-10/I-40 with licensed regional extracts. Retain strict identity checks; the demonstrated Midwest corridor does not establish coverage on these other corridors.
 

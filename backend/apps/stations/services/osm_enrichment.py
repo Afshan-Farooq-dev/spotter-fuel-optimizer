@@ -11,7 +11,7 @@ from .geocoding import normalized, station_query
 from apps.routes.services.locations import us_state
 from apps.routes.services.domain import InvalidLocation
 
-POLICY='osm-identity-v1'
+POLICY='osm-identity-v2'
 
 def identity(station, tags):
     names=station.aliases+[station.name]
